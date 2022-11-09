@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { Post } from './post.entity';
 
 @Entity()
@@ -13,16 +14,16 @@ export class User {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
   @Column()
   password: string;
 
-  @Column()
+  @Column({ unique: true })
   phoneNumber: string;
 
-  @Column()
+  @Column({ nullable: true })
   avatar: string;
 
   @OneToMany(() => Post, (post) => post.creator)
