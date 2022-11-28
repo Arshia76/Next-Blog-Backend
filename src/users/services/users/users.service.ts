@@ -18,12 +18,14 @@ export class UsersServiceV1 {
         where: [query],
         relations: ['posts'],
       });
-      const plainUser = instanceToPlain(user);
+      // eslint-disable-next-line
+      const { password, ...data } = user;
+      const plainUser = instanceToPlain(data);
 
       return plainUser;
     } else {
-      const user = await this.usersRepository.find({ relations: ['posts'] });
-      const plainUser = instanceToPlain(user);
+      const users = await this.usersRepository.find({ relations: ['posts'] });
+      const plainUser = instanceToPlain(users);
       return plainUser;
     }
   }
@@ -35,7 +37,7 @@ export class UsersServiceV1 {
     return plainUser;
   }
 
-  async updateUser(id: number, updateUserDto: UpdateUserDto) {
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.usersRepository.update({ id }, updateUserDto);
     const plainUser = instanceToPlain(user);
     return plainUser;
