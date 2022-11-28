@@ -1,11 +1,13 @@
-import { Module } from '@nestjs/common';
-import { UsersModule } from './users/users.module';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { UsersModule } from './models/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { PostsModule } from './posts/posts.module';
-import { CategoryModule } from './category/category.module';
+import { AuthModule } from './models/auth/auth.module';
+import { PostsModule } from './models/posts/posts.module';
+import { CategoryModule } from './models/category/category.module';
 import entities from './typeorm';
+import { PagerMiddleware } from './middleware/pagination.middleware';
+import { PostsControllerV1 } from './models/posts/controllers/posts/posts.controller';
 
 @Module({
   imports: [
@@ -30,4 +32,10 @@ import entities from './typeorm';
     CategoryModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(PagerMiddleware)
+      .forRoutes({ path: '/posts', method: RequestMethod.GET });
+  }
+}

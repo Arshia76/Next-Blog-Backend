@@ -5,6 +5,7 @@ import {
   Patch,
   Delete,
   Param,
+  Query,
   Body,
   UseGuards,
   UploadedFile,
@@ -13,19 +14,19 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
 } from '@nestjs/common';
-import { CreatePostDto, UpdatePostDto } from 'src/posts/common/dto';
-import { PostsServiceV1 } from 'src/posts/services/posts/posts.service';
-import { OwnPostGuard } from 'src/posts/common/guard';
+import { CreatePostDto, UpdatePostDto } from 'src/models/posts/common/dto';
+import { PostsServiceV1 } from 'src/models/posts/services/posts/posts.service';
+import { OwnPostGuard } from 'src/models/posts/common/guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AccessJwtAuthGuard } from 'src/auth/common/guards';
+import { AccessJwtAuthGuard } from 'src/models/auth/common/guards';
 
 @Controller({ version: '1', path: 'posts' })
 export class PostsControllerV1 {
   constructor(private readonly postServiceV1: PostsServiceV1) {}
 
   @Get('/')
-  getAllPosts() {
-    return this.postServiceV1.getAllPosts();
+  getAllPosts(@Query() { take, page }) {
+    return this.postServiceV1.getAllPosts(take, page);
   }
 
   @Get('/:id')
@@ -34,23 +35,26 @@ export class PostsControllerV1 {
   }
 
   @Get('/category/:categoryId')
-  getPostsOfCategory(@Param('categoryId') categoryId: string) {
-    return this.postServiceV1.getPostsOfCategory(categoryId);
+  getPostsOfCategory(
+    @Param('categoryId') categoryId: string,
+    @Query() { take, page },
+  ) {
+    return this.postServiceV1.getPostsOfCategory(categoryId, take, page);
   }
 
   @Get('/:userId/posts')
-  getUserPosts() {
-    return this.postServiceV1.getUserPosts();
+  getUserPosts(@Query() { take, page }) {
+    return this.postServiceV1.getUserPosts(take, page);
   }
 
   @Get('/search/:post')
-  searchPosts(@Param('post') post: string) {
-    return this.postServiceV1.searchPosts(post);
+  searchPosts(@Param('post') post: string, @Query() { take, page }) {
+    return this.postServiceV1.searchPosts(post, take, page);
   }
 
   @Get('/:userId/bookmarked/posts')
-  getUserBookmarkedPosts() {
-    return this.postServiceV1.getUserBookmarkedPosts();
+  getUserBookmarkedPosts(@Query() { take, page }) {
+    return this.postServiceV1.getUserBookmarkedPosts(take, page);
   }
 
   @Patch('/bookmark/post/:postId')

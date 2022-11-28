@@ -2,9 +2,10 @@ import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Post, User, Category, Comment, Like as LikeModel } from 'src/typeorm';
-import { CreatePostDto, UpdatePostDto } from 'src/posts/common/dto';
+import { CreatePostDto, UpdatePostDto } from 'src/models/posts/common/dto';
 import { instanceToPlain } from 'class-transformer';
 import { REQUEST } from '@nestjs/core';
+import paginateResponse from 'src/utils/paginateResponse';
 
 @Injectable()
 export class PostsServiceV1 {
@@ -22,10 +23,13 @@ export class PostsServiceV1 {
     @Inject(REQUEST) private request: any,
   ) {}
 
-  getAllPosts() {
-    return this.postsRepository.find({
+  async getAllPosts(take: number, page: number) {
+    const data = await this.postsRepository.findAndCount({
       relations: ['comments.user', 'likes.user'],
+      take,
+      skip: this.request.query.skip,
     });
+    return paginateResponse(data, page, take);
   }
 
   getPostDetail(id: string) {
@@ -37,44 +41,56 @@ export class PostsServiceV1 {
     });
   }
 
-  async getPostsOfCategory(categoryId: string) {
+  async getPostsOfCategory(categoryId: string, take: number, page: number) {
     const category = await this.categoriesRepository.findOneBy({
       id: categoryId,
     });
 
-    return this.postsRepository.find({
+    const data = await this.postsRepository.findAndCount({
       where: {
         category,
       },
       relations: ['comments.user', 'likes.user'],
+      take,
+      skip: this.request.query.skip,
     });
+    return paginateResponse(data, page, take);
   }
 
-  getUserPosts() {
-    return this.postsRepository.find({
+  async getUserPosts(take: number, page: number) {
+    const data = await this.postsRepository.findAndCount({
       where: {
         creator: this.request.user,
       },
       relations: ['comments.user', 'likes.user'],
+      take,
+      skip: this.request.query.skip,
     });
+    return paginateResponse(data, page, take);
   }
 
-  searchPosts(post: string) {
-    return this.postsRepository.find({
+  async searchPosts(post: string, take: number, page: number) {
+    const data = await this.postsRepository.findAndCount({
       where: {
         title: Like(post),
       },
       relations: ['comments.user', 'likes.user'],
+      take,
+      skip: this.request.query.skip,
     });
+    return paginateResponse(data, page, take);
   }
 
-  getUserBookmarkedPosts() {
-    return this.postsRepository.find({
+  async getUserBookmarkedPosts(take: number, page: number) {
+    const data = await this.postsRepository.findAndCount({
       where: {
         creator: this.request.user,
       },
       relations: ['comments.user', 'likes.user'],
+      take,
+      skip: this.request.query.skip,
     });
+    return paginateResponse(data, page, take);
   }
 
   async bookmarkPost(postId: string) {

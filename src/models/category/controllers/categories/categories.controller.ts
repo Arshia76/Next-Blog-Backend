@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { CategoriesServiceV1 } from 'src/category/services/categories/categories.service';
+import { CategoriesServiceV1 } from '../../services/categories/categories.service';
 
 @Controller({ version: '1', path: 'categories' })
 export class CategoriesControllerV1 {
