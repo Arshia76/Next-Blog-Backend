@@ -14,9 +14,12 @@ export class OwnPostGuard implements CanActivate {
 
     const isOwnPost = await this.postsRepository.findOne({
       where: {
-        creator: user,
+        creator: {
+          id: user.sub,
+        },
       },
     });
+
     if (isOwnPost) {
       return true;
     }

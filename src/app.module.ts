@@ -7,7 +7,6 @@ import { PostsModule } from './models/posts/posts.module';
 import { CategoryModule } from './models/category/category.module';
 import entities from './typeorm';
 import { PagerMiddleware } from './middleware/pagination.middleware';
-import { PostsControllerV1 } from './models/posts/controllers/posts/posts.controller';
 
 @Module({
   imports: [

@@ -4,6 +4,7 @@ import { CreateUserDto, LoginUserDto } from './common/dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class AuthServiceV1 {
@@ -46,7 +47,10 @@ export class AuthServiceV1 {
   async localRegister(createUserDto: CreateUserDto) {
     const { phoneNumber, username } = createUserDto;
 
-    const userExist = await this.userServiceV1.find({ phoneNumber, username });
+    const userExist = await this.userServiceV1.find([
+      { phoneNumber },
+      { username },
+    ]);
 
     if (userExist) {
       throw new HttpException('User Already Exists', 400);
@@ -58,7 +62,17 @@ export class AuthServiceV1 {
       ...rest,
       password: hashedPassword,
     };
-    return this.userServiceV1.createUser(data);
+    const user = await this.userServiceV1.createUser(data);
+
+    const payload = { username, sub: user.id };
+
+    const token = {
+      access_token: this.jwtService.sign(payload, {
+        secret: this.configService.get('JWT_SECRET_ACCESS_TOKEN'),
+        expiresIn: '1d',
+      }),
+    };
+    return token;
   }
 
   async hash(data: string) {

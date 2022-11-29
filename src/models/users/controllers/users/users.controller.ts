@@ -11,8 +11,11 @@ import {
   FileTypeValidator,
   MaxFileSizeValidator,
   ParseFilePipe,
+  SerializeOptions,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AccessJwtAuthGuard } from 'src/models/auth/common/guards';
 import { CreateUserDto, UpdateUserDto } from '../../common/dto';
 import { UsersServiceV1 } from '../../services/users/users.service';
 
@@ -43,12 +46,19 @@ export class UsersControllerV1 {
     console.log(avatar);
   }
 
+  @Get('me')
+  @UseGuards(AccessJwtAuthGuard)
+  getCurrentUser() {
+    return this.usersServiceV1.getCurrentUser();
+  }
+
   @Post('/create')
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersServiceV1.createUser(createUserDto);
   }
 
   @Patch('/update/:id')
+  @UseGuards(AccessJwtAuthGuard)
   updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersServiceV1.updateUser(id, updateUserDto);
   }

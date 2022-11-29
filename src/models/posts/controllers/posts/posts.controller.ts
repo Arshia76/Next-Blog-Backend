@@ -43,6 +43,7 @@ export class PostsControllerV1 {
   }
 
   @Get('/:userId/posts')
+  @UseGuards(AccessJwtAuthGuard)
   getUserPosts(@Query() { take, page }) {
     return this.postServiceV1.getUserPosts(take, page);
   }
@@ -53,6 +54,7 @@ export class PostsControllerV1 {
   }
 
   @Get('/:userId/bookmarked/posts')
+  @UseGuards(AccessJwtAuthGuard)
   getUserBookmarkedPosts(@Query() { take, page }) {
     return this.postServiceV1.getUserBookmarkedPosts(take, page);
   }
@@ -64,6 +66,7 @@ export class PostsControllerV1 {
   }
 
   @Post('/upload')
+  @UseGuards(AccessJwtAuthGuard)
   @UseInterceptors(FileInterceptor('postImage'))
   uploadPostImage(
     @UploadedFile()
@@ -73,18 +76,19 @@ export class PostsControllerV1 {
   }
 
   @Post('/create/post')
+  @UseGuards(AccessJwtAuthGuard)
   createPost(@Body() createPostDto: CreatePostDto) {
     return this.postServiceV1.createPost(createPostDto);
   }
 
   @Patch('/update/post/:id')
-  @UseGuards(OwnPostGuard)
+  @UseGuards(AccessJwtAuthGuard, OwnPostGuard)
   updatePost(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
     return this.postServiceV1.updatePost(id, updatePostDto);
   }
 
   @Delete('/delete/post/:id')
-  @UseGuards(OwnPostGuard)
+  @UseGuards(AccessJwtAuthGuard, OwnPostGuard)
   deletePost(@Param('id') id: string) {
     return this.postServiceV1.deletePost(id);
   }

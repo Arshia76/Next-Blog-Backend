@@ -42,13 +42,11 @@ export class PostsServiceV1 {
   }
 
   async getPostsOfCategory(categoryId: string, take: number, page: number) {
-    const category = await this.categoriesRepository.findOneBy({
-      id: categoryId,
-    });
-
     const data = await this.postsRepository.findAndCount({
       where: {
-        category,
+        category: {
+          id: categoryId,
+        },
       },
       relations: ['comments.user', 'likes.user'],
       take,
@@ -72,7 +70,7 @@ export class PostsServiceV1 {
   async searchPosts(post: string, take: number, page: number) {
     const data = await this.postsRepository.findAndCount({
       where: {
-        title: Like(post),
+        title: Like('%' + post + '%'),
       },
       relations: ['comments.user', 'likes.user'],
       take,
@@ -116,8 +114,10 @@ export class PostsServiceV1 {
       id: this.request.user.id,
     });
 
+    plainData.creator = user;
+
     const post = this.postsRepository.create(plainData);
-    user.posts.push(post);
+    user?.posts?.push(post);
     await this.usersRepository.save(user);
 
     return this.postsRepository.save(post);
@@ -149,9 +149,13 @@ export class PostsServiceV1 {
     const plainPost = instanceToPlain(post);
     const plainUser = instanceToPlain(user);
 
-    console.log(post);
+    const isCommented = post.comments.some(
+      (comment) => comment.user.id === user.id,
+    );
 
-    console.log(plainPost);
+    if (isCommented) {
+      throw new HttpException("You've already commented", 400);
+    }
 
     const comment = new Comment();
     comment.title = title;
@@ -176,6 +180,13 @@ export class PostsServiceV1 {
     });
     const plainUser = instanceToPlain(user);
     const plainPost = instanceToPlain(post);
+
+    const isLiked = post.likes.some((like) => like.user.id === user.id);
+
+    if (isLiked) {
+      throw new HttpException("You've already Liked this Post", 400);
+    }
+
     const like = new LikeModel();
     like.post = plainPost.id;
     like.user = plainUser.id;
