@@ -61,8 +61,12 @@ export class UsersServiceV1 {
     return rest;
   }
 
-  async updateUser(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.usersRepository.findOneBy({ id });
+  async updateUser(updateUserDto: UpdateUserDto) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: this.request.user.sub,
+      },
+    });
 
     if (user.id !== this.request.user.sub) {
       throw new ForbiddenException();

@@ -19,6 +19,8 @@ import { PostsServiceV1 } from 'src/models/posts/services/posts/posts.service';
 import { OwnPostGuard } from 'src/models/posts/common/guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AccessJwtAuthGuard } from 'src/models/auth/common/guards';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller({ version: '1', path: 'posts' })
 export class PostsControllerV1 {
@@ -42,7 +44,7 @@ export class PostsControllerV1 {
     return this.postServiceV1.getPostsOfCategory(categoryId, take, page);
   }
 
-  @Get('/:userId/posts')
+  @Get('/user/posts')
   @UseGuards(AccessJwtAuthGuard)
   getUserPosts(@Query() { take, page }) {
     return this.postServiceV1.getUserPosts(take, page);
@@ -53,7 +55,7 @@ export class PostsControllerV1 {
     return this.postServiceV1.searchPosts(post, take, page);
   }
 
-  @Get('/:userId/bookmarked/posts')
+  @Get('/user/bookmarked/posts')
   @UseGuards(AccessJwtAuthGuard)
   getUserBookmarkedPosts(@Query() { take, page }) {
     return this.postServiceV1.getUserBookmarkedPosts(take, page);
@@ -65,14 +67,25 @@ export class PostsControllerV1 {
     this.postServiceV1.bookmarkPost(postId);
   }
 
-  @Post('/upload')
+  @Post('/upload/postImage')
   @UseGuards(AccessJwtAuthGuard)
-  @UseInterceptors(FileInterceptor('postImage'))
+  @UseInterceptors(
+    FileInterceptor('postImage', {
+      storage: diskStorage({
+        destination: './uploads/posts',
+        filename(req, file, callback) {
+          const filename =
+            file.originalname + '-' + Date.now() + extname(file.originalname);
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
   uploadPostImage(
     @UploadedFile()
     postImage: Express.Multer.File,
   ) {
-    console.log(postImage);
+    console.log(postImage, 'file uploaded');
   }
 
   @Post('/create/post')

@@ -57,9 +57,9 @@ export class UsersControllerV1 {
     return this.usersServiceV1.createUser(createUserDto);
   }
 
-  @Patch('/update/:id')
+  @Patch('/update')
   @UseGuards(AccessJwtAuthGuard)
-  updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersServiceV1.updateUser(id, updateUserDto);
+  updateUser(@Body() updateUserDto: UpdateUserDto) {
+    return this.usersServiceV1.updateUser(updateUserDto);
   }
 }

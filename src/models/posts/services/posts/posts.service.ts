@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, Like, ArrayContains, ArrayContainedBy } from 'typeorm';
 import { Post, User, Category, Comment, Like as LikeModel } from 'src/typeorm';
 import { CreatePostDto, UpdatePostDto } from 'src/models/posts/common/dto';
 import { instanceToPlain } from 'class-transformer';
@@ -58,7 +58,9 @@ export class PostsServiceV1 {
   async getUserPosts(take: number, page: number) {
     const data = await this.postsRepository.findAndCount({
       where: {
-        creator: this.request.user,
+        creator: {
+          id: this.request.user.sub,
+        },
       },
       relations: ['comments.user', 'likes.user'],
       take,
@@ -82,7 +84,9 @@ export class PostsServiceV1 {
   async getUserBookmarkedPosts(take: number, page: number) {
     const data = await this.postsRepository.findAndCount({
       where: {
-        creator: this.request.user,
+        bookmarkedByUsers: {
+          id: this.request.user.sub,
+        },
       },
       relations: ['comments.user', 'likes.user'],
       take,
