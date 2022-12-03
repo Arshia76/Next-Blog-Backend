@@ -10,6 +10,8 @@ import { User } from 'src/typeorm';
 import { CreateUserDto, UpdateUserDto } from '../../common/dto';
 import { instanceToPlain } from 'class-transformer';
 import { REQUEST } from '@nestjs/core';
+import { ChangePasswordDto } from '../../common/dto/change-password-dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersServiceV1 {
@@ -78,5 +80,41 @@ export class UsersServiceV1 {
       ...plainUser,
       ...plainData,
     });
+  }
+  async changePassword(changePasswordDto: ChangePasswordDto) {
+    const { currentPassword, newPassword } = changePasswordDto;
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: this.request.user.sub,
+      },
+      select: [
+        'avatar',
+        'username',
+        'password',
+        'comments',
+        'createdAt',
+        'updatedAt',
+        'bookmarkedPosts',
+        'posts',
+        'id',
+        'likes',
+        'phoneNumber',
+      ],
+    });
+
+    const isPasswordMatch = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordMatch) {
+      throw new ForbiddenException('Password is Wrong');
+    }
+
+    const salt = await bcrypt.genSalt();
+
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    return this.usersRepository.save(user);
   }
 }
