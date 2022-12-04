@@ -3,7 +3,6 @@ import {
   Get,
   Patch,
   Post,
-  Param,
   Body,
   Query,
   UseInterceptors,
@@ -11,10 +10,12 @@ import {
   FileTypeValidator,
   MaxFileSizeValidator,
   ParseFilePipe,
-  SerializeOptions,
   UseGuards,
 } from '@nestjs/common';
+
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { AccessJwtAuthGuard } from 'src/models/auth/common/guards';
 import { CreateUserDto, UpdateUserDto } from '../../common/dto';
 import { ChangePasswordDto } from '../../common/dto/change-password-dto';
@@ -30,21 +31,31 @@ export class UsersControllerV1 {
   }
 
   @Post('/upload')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseGuards(AccessJwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: `./uploads/users/avatars`,
+        filename(req, file, callback) {
+          const filename =
+            file.originalname + '-' + Date.now() + extname(file.originalname);
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
   uploadAvatar(
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1000 }),
-          new FileTypeValidator({ fileType: 'jpeg' }),
-          new FileTypeValidator({ fileType: 'jpg' }),
-          new FileTypeValidator({ fileType: 'png' }),
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+          new FileTypeValidator({ fileType: '.(jpg|jpeg|png)$' }),
         ],
       }),
     )
     avatar: Express.Multer.File,
   ) {
-    console.log(avatar);
+    return this.usersServiceV1.uploadAvatar(avatar);
   }
 
   @Get('me')
@@ -62,6 +73,34 @@ export class UsersControllerV1 {
   @UseGuards(AccessJwtAuthGuard)
   updateUser(@Body() updateUserDto: UpdateUserDto) {
     return this.usersServiceV1.updateUser(updateUserDto);
+  }
+
+  @Patch('/update/avatar')
+  @UseGuards(AccessJwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: `./uploads/users/avatars`,
+        filename(req, file, callback) {
+          const filename =
+            file.originalname + '-' + Date.now() + extname(file.originalname);
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
+  updateUserAvatar(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+          new FileTypeValidator({ fileType: '.(jpg|jpeg|png)$' }),
+        ],
+      }),
+    )
+    avatar: Express.Multer.File,
+  ) {
+    return this.usersServiceV1.updateUserAvatar(avatar);
   }
 
   @Patch('/changePassword')

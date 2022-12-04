@@ -12,6 +12,7 @@ import { instanceToPlain } from 'class-transformer';
 import { REQUEST } from '@nestjs/core';
 import { ChangePasswordDto } from '../../common/dto/change-password-dto';
 import * as bcrypt from 'bcrypt';
+import { deleteFile } from 'src/utils/functions';
 
 @Injectable()
 export class UsersServiceV1 {
@@ -116,5 +117,35 @@ export class UsersServiceV1 {
     user.password = await bcrypt.hash(newPassword, salt);
 
     return this.usersRepository.save(user);
+  }
+
+  async uploadAvatar(avatar: Express.Multer.File) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: this?.request?.user?.sub,
+      },
+    });
+
+    user.avatar = avatar.path;
+    await this.usersRepository.save(user);
+    return user;
+  }
+
+  async updateUserAvatar(avatar: Express.Multer.File) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: this?.request?.user?.sub,
+      },
+    });
+
+    if (user.avatar) {
+      deleteFile('./' + user.avatar);
+    }
+
+    const { path } = avatar;
+
+    user.avatar = path;
+    await this.usersRepository.save(user);
+    return user;
   }
 }

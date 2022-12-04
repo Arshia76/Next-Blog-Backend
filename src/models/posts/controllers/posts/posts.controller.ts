@@ -67,7 +67,7 @@ export class PostsControllerV1 {
     this.postServiceV1.bookmarkPost(postId);
   }
 
-  @Post('/upload/postImage')
+  @Post('/upload/postImage/:id')
   @UseGuards(AccessJwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('postImage', {
@@ -82,10 +82,47 @@ export class PostsControllerV1 {
     }),
   )
   uploadPostImage(
-    @UploadedFile()
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+          new FileTypeValidator({ fileType: '.(jpg|jpeg|png)$' }),
+        ],
+      }),
+    )
     postImage: Express.Multer.File,
+    @Param('id') id: string,
   ) {
-    console.log(postImage, 'file uploaded');
+    return this.postServiceV1.uploadPostImage(postImage, id);
+  }
+
+  @Patch('/update/postImage/:id')
+  @UseGuards(AccessJwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('postImage', {
+      storage: diskStorage({
+        destination: './uploads/posts',
+        filename(req, file, callback) {
+          const filename =
+            file.originalname + '-' + Date.now() + extname(file.originalname);
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
+  updatePostImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+          new FileTypeValidator({ fileType: '.(jpg|jpeg|png)$' }),
+        ],
+      }),
+    )
+    postImage: Express.Multer.File,
+    @Param('id') id: string,
+  ) {
+    return this.postServiceV1.updatePostImage(postImage, id);
   }
 
   @Post('/create/post')

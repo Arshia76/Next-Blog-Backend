@@ -1,11 +1,12 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, ArrayContains, ArrayContainedBy } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Post, User, Category, Comment, Like as LikeModel } from 'src/typeorm';
 import { CreatePostDto, UpdatePostDto } from 'src/models/posts/common/dto';
 import { instanceToPlain } from 'class-transformer';
 import { REQUEST } from '@nestjs/core';
 import paginateResponse from 'src/utils/paginateResponse';
+import { deleteFile } from 'src/utils/functions';
 
 @Injectable()
 export class PostsServiceV1 {
@@ -229,6 +230,36 @@ export class PostsServiceV1 {
       post.likes.splice(index, 1);
     }
     await this.usersRepository.save(currentUser);
+    await this.postsRepository.save(post);
+    return post;
+  }
+
+  async uploadPostImage(postImage: Express.Multer.File, id: string) {
+    const post = await this.postsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    post.image = postImage.path;
+    await this.postsRepository.save(post);
+    return post;
+  }
+
+  async updatePostImage(postImage: Express.Multer.File, id: string) {
+    const post = await this.postsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (post.image) {
+      deleteFile('./' + post.image);
+    }
+
+    const { path } = postImage;
+
+    post.image = path;
     await this.postsRepository.save(post);
     return post;
   }
