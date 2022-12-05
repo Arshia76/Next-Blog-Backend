@@ -1,7 +1,7 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import { Post, User, Category, Comment, Like as LikeModel } from 'src/typeorm';
+import { Post, User, Comment, Like as LikeModel } from 'src/typeorm';
 import { CreatePostDto, UpdatePostDto } from 'src/models/posts/common/dto';
 import { instanceToPlain } from 'class-transformer';
 import { REQUEST } from '@nestjs/core';
@@ -15,8 +15,6 @@ export class PostsServiceV1 {
     private postsRepository: Repository<Post>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(Category)
-    private categoriesRepository: Repository<Category>,
     @InjectRepository(Comment)
     private commnetsRepository: Repository<Comment>,
     @InjectRepository(LikeModel)
@@ -83,32 +81,57 @@ export class PostsServiceV1 {
   }
 
   async getUserBookmarkedPosts(take: number, page: number) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: this.request.user.sub,
+      },
+    });
+
     const data = await this.postsRepository.findAndCount({
+      relations: ['comments.user', 'likes.user'],
       where: {
         bookmarkedByUsers: {
-          id: this.request.user.sub,
+          id: user.id.toString(),
         },
       },
-      relations: ['comments.user', 'likes.user'],
       take,
       skip: this.request.query.skip,
     });
+
     return paginateResponse(data, page, take);
   }
 
-  async bookmarkPost(postId: string) {
-    const post = await this.postsRepository.findOneBy({ id: postId });
-    console.log(post);
+  async handleBookmarkPost(postId: string) {
+    const post = await this.postsRepository.findOne({
+      where: { id: postId },
+      relations: ['bookmarkedByUsers'],
+    });
 
     const user = await this.usersRepository.findOneBy({
       id: this.request.user.sub,
     });
-    console.log(user);
+
+    const isBookmarked = post.bookmarkedByUsers.find((u) => {
+      console.log(u.id);
+      console.log(user.id);
+      return u?.id?.toString() === user.id.toString();
+    });
+
+    console.log(isBookmarked);
+
+    if (isBookmarked) {
+      const index = post.bookmarkedByUsers.indexOf(isBookmarked);
+      if (index > -1) {
+        post.bookmarkedByUsers.splice(index, 1);
+      }
+      await this.usersRepository.save(user);
+      await this.postsRepository.save(post);
+      return post;
+    }
 
     post.bookmarkedByUsers.push(user);
 
     await this.postsRepository.save(post);
-    console.log(post);
 
     return post;
   }
@@ -146,7 +169,10 @@ export class PostsServiceV1 {
   }
 
   async commentPost(postId: string, title: string) {
-    const post = await this.postsRepository.findOneBy({ id: postId });
+    const post = await this.postsRepository.findOne({
+      where: { id: postId },
+      relations: ['comments'],
+    });
     const user = await this.usersRepository.findOneBy({
       id: this.request.user.sub,
     });
@@ -155,7 +181,7 @@ export class PostsServiceV1 {
     const plainUser = instanceToPlain(user);
 
     const isCommented = post.comments.some(
-      (comment) => comment.user.id === user.id,
+      (comment) => comment?.user?.id === user?.id,
     );
 
     if (isCommented) {
@@ -178,18 +204,31 @@ export class PostsServiceV1 {
     return post;
   }
 
-  async likePost(postId: string) {
-    const post = await this.postsRepository.findOneBy({ id: postId });
+  async handleLikePost(postId: string) {
+    const post = await this.postsRepository.findOne({
+      where: {
+        id: postId,
+      },
+      relations: ['likes.user'],
+    });
     const user = await this.usersRepository.findOneBy({
       id: this.request.user.sub,
     });
     const plainUser = instanceToPlain(user);
     const plainPost = instanceToPlain(post);
 
-    const isLiked = post.likes.some((like) => like.user.id === user.id);
+    console.log(post.likes);
+
+    const isLiked = post.likes.find((like: any) => like?.user?.id === user?.id);
 
     if (isLiked) {
-      throw new HttpException("You've already Liked this Post", 400);
+      const index = post.likes.indexOf(isLiked);
+      if (index > -1) {
+        post.likes.splice(index, 1);
+      }
+      await this.usersRepository.save(user);
+      await this.postsRepository.save(post);
+      return post;
     }
 
     const like = new LikeModel();
@@ -200,37 +239,6 @@ export class PostsServiceV1 {
     user?.likes?.push(like);
     await this.postsRepository.save(post);
     await this.likesRepository.save(user);
-    return post;
-  }
-
-  async unlikePost(postId: string) {
-    const post = await this.postsRepository.findOne({
-      where: {
-        id: postId,
-      },
-      relations: ['likes.user'],
-    });
-    const currentUser = await this.usersRepository.findOneBy({
-      id: this.request.user.sub,
-    });
-
-    const plainUser = instanceToPlain(currentUser);
-
-    const isLiked = post.likes.find(
-      (like: LikeModel) => like.user.id?.toString() === plainUser.id.toString(),
-    );
-
-    if (!isLiked) {
-      return new HttpException('You havent liked this post yet', 400);
-    }
-    await this.likesRepository.remove(isLiked);
-
-    const index = post.likes.indexOf(isLiked);
-    if (index > -1) {
-      post.likes.splice(index, 1);
-    }
-    await this.usersRepository.save(currentUser);
-    await this.postsRepository.save(post);
     return post;
   }
 

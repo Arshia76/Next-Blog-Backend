@@ -61,10 +61,10 @@ export class PostsControllerV1 {
     return this.postServiceV1.getUserBookmarkedPosts(take, page);
   }
 
-  @Patch('/bookmark/post/:postId')
+  @Patch('/handle/bookmark/post/:postId')
   @UseGuards(AccessJwtAuthGuard)
   bookmarkPost(@Param('postId') postId: string) {
-    this.postServiceV1.bookmarkPost(postId);
+    return this.postServiceV1.handleBookmarkPost(postId);
   }
 
   @Post('/upload/postImage/:id')
@@ -149,15 +149,9 @@ export class PostsControllerV1 {
     return this.postServiceV1.commentPost(postId, title);
   }
 
-  @Patch('/like/:postId')
+  @Patch('/handle/like/:postId')
   @UseGuards(AccessJwtAuthGuard)
   likePost(@Param('postId') postId: string) {
-    return this.postServiceV1.likePost(postId);
-  }
-
-  @Patch('/unlike/:postId')
-  @UseGuards(AccessJwtAuthGuard)
-  unlikePost(@Param('postId') postId: string) {
-    return this.postServiceV1.unlikePost(postId);
+    return this.postServiceV1.handleLikePost(postId);
   }
 }

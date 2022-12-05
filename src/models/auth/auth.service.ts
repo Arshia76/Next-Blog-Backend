@@ -4,7 +4,6 @@ import { CreateUserDto, LoginUserDto } from './common/dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class AuthServiceV1 {
@@ -39,6 +38,7 @@ export class AuthServiceV1 {
         secret: this.configService.get('JWT_SECRET_ACCESS_TOKEN'),
         expiresIn: '1d',
       }),
+      id: user.id,
     };
 
     return data;
@@ -58,21 +58,22 @@ export class AuthServiceV1 {
 
     const { password, ...rest } = createUserDto;
     const hashedPassword = await this.hash(password);
-    const data = {
+    const userData = {
       ...rest,
       password: hashedPassword,
     };
-    const user = await this.userServiceV1.createUser(data);
+    const user = await this.userServiceV1.createUser(userData);
 
     const payload = { username, sub: user.id };
 
-    const token = {
+    const data = {
       access_token: this.jwtService.sign(payload, {
         secret: this.configService.get('JWT_SECRET_ACCESS_TOKEN'),
         expiresIn: '1d',
       }),
+      id: user.id,
     };
-    return token;
+    return data;
   }
 
   async hash(data: string) {
