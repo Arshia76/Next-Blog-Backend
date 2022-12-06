@@ -31,7 +31,6 @@ export class UsersControllerV1 {
   }
 
   @Post('/upload')
-  @UseGuards(AccessJwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('avatar', {
       storage: diskStorage({

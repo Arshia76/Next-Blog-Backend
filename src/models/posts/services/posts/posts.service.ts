@@ -139,7 +139,7 @@ export class PostsServiceV1 {
   async createPost(data: CreatePostDto) {
     const plainData = instanceToPlain(data);
     const user = await this.usersRepository.findOneBy({
-      id: this.request.user.id,
+      id: this.request.user.sub,
     });
 
     plainData.creator = user;
