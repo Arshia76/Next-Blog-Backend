@@ -242,18 +242,6 @@ export class PostsServiceV1 {
     return post;
   }
 
-  async uploadPostImage(postImage: Express.Multer.File, id: string) {
-    const post = await this.postsRepository.findOne({
-      where: {
-        id,
-      },
-    });
-
-    post.image = postImage.path;
-    await this.postsRepository.save(post);
-    return post;
-  }
-
   async updatePostImage(postImage: Express.Multer.File, id: string) {
     const post = await this.postsRepository.findOne({
       where: {

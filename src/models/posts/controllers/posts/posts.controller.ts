@@ -67,7 +67,7 @@ export class PostsControllerV1 {
     return this.postServiceV1.handleBookmarkPost(postId);
   }
 
-  @Post('/upload/postImage/:id')
+  @Post('/upload/postImage')
   @UseGuards(AccessJwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('postImage', {
@@ -91,9 +91,8 @@ export class PostsControllerV1 {
       }),
     )
     postImage: Express.Multer.File,
-    @Param('id') id: string,
   ) {
-    return this.postServiceV1.uploadPostImage(postImage, id);
+    return postImage;
   }
 
   @Patch('/update/postImage/:id')

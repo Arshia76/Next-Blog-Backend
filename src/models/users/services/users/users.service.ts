@@ -119,18 +119,6 @@ export class UsersServiceV1 {
     return this.usersRepository.save(user);
   }
 
-  async uploadAvatar(avatar: Express.Multer.File) {
-    const user = await this.usersRepository.findOne({
-      where: {
-        id: this?.request?.user?.sub,
-      },
-    });
-
-    user.avatar = avatar.path;
-    await this.usersRepository.save(user);
-    return user;
-  }
-
   async updateUserAvatar(avatar: Express.Multer.File) {
     const user = await this.usersRepository.findOne({
       where: {

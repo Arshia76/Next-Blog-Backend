@@ -55,7 +55,7 @@ export class UsersControllerV1 {
     )
     avatar: Express.Multer.File,
   ) {
-    return this.usersServiceV1.uploadAvatar(avatar);
+    return avatar;
   }
 
   @Get('me')
