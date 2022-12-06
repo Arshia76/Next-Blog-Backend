@@ -104,7 +104,7 @@ export class PostsServiceV1 {
   async handleBookmarkPost(postId: string) {
     const post = await this.postsRepository.findOne({
       where: { id: postId },
-      relations: ['bookmarkedByUsers'],
+      relations: ['likes.user'],
     });
 
     const user = await this.usersRepository.findOneBy({
