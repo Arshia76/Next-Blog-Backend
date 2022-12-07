@@ -22,12 +22,51 @@ export class PostsServiceV1 {
     @Inject(REQUEST) private request: any,
   ) {}
 
-  async getAllPosts(take: number, page: number) {
-    const data = await this.postsRepository.findAndCount({
-      relations: ['comments.user', 'likes.user'],
-      take,
-      skip: this.request.query.skip,
-    });
+  async getAllPosts(
+    search: string,
+    category: string,
+    take: number,
+    page: number,
+  ) {
+    let data: [Post[], number];
+
+    if (category && search) {
+      data = await this.postsRepository.findAndCount({
+        where: {
+          title: Like('%' + search + '%'),
+
+          category: {
+            id: category,
+          },
+        },
+
+        relations: ['comments.user', 'likes.user'],
+        take,
+        skip: (page - 1) * take,
+      });
+    } else if (category || search) {
+      data = await this.postsRepository.findAndCount({
+        where: [
+          { title: Like('%' + search + '%') },
+
+          {
+            category: {
+              id: category,
+            },
+          },
+        ],
+
+        relations: ['comments.user', 'likes.user'],
+        take,
+        skip: (page - 1) * take,
+      });
+    } else {
+      data = await this.postsRepository.findAndCount({
+        relations: ['comments.user', 'likes.user'],
+        take,
+        skip: (page - 1) * take,
+      });
+    }
     return paginateResponse(data, page, take);
   }
 
@@ -40,20 +79,6 @@ export class PostsServiceV1 {
     });
   }
 
-  async getPostsOfCategory(categoryId: string, take: number, page: number) {
-    const data = await this.postsRepository.findAndCount({
-      where: {
-        category: {
-          id: categoryId,
-        },
-      },
-      relations: ['comments.user', 'likes.user'],
-      take,
-      skip: this.request.query.skip,
-    });
-    return paginateResponse(data, page, take);
-  }
-
   async getUserPosts(take: number, page: number) {
     const data = await this.postsRepository.findAndCount({
       where: {
@@ -63,19 +88,7 @@ export class PostsServiceV1 {
       },
       relations: ['comments.user', 'likes.user'],
       take,
-      skip: this.request.query.skip,
-    });
-    return paginateResponse(data, page, take);
-  }
-
-  async searchPosts(post: string, take: number, page: number) {
-    const data = await this.postsRepository.findAndCount({
-      where: {
-        title: Like('%' + post + '%'),
-      },
-      relations: ['comments.user', 'likes.user'],
-      take,
-      skip: this.request.query.skip,
+      skip: (page - 1) * take,
     });
     return paginateResponse(data, page, take);
   }
@@ -95,7 +108,7 @@ export class PostsServiceV1 {
         },
       },
       take,
-      skip: this.request.query.skip,
+      skip: (page - 1) * take,
     });
 
     return paginateResponse(data, page, take);

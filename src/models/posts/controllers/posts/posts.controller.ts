@@ -27,8 +27,8 @@ export class PostsControllerV1 {
   constructor(private readonly postServiceV1: PostsServiceV1) {}
 
   @Get('/')
-  getAllPosts(@Query() { take, page }) {
-    return this.postServiceV1.getAllPosts(take, page);
+  getAllPosts(@Query() { search, category, take, page }) {
+    return this.postServiceV1.getAllPosts(search, category, take, page);
   }
 
   @Get('/:id')
@@ -36,23 +36,10 @@ export class PostsControllerV1 {
     return this.postServiceV1.getPostDetail(id);
   }
 
-  @Get('/category/:categoryId')
-  getPostsOfCategory(
-    @Param('categoryId') categoryId: string,
-    @Query() { take, page },
-  ) {
-    return this.postServiceV1.getPostsOfCategory(categoryId, take, page);
-  }
-
   @Get('/user/posts')
   @UseGuards(AccessJwtAuthGuard)
   getUserPosts(@Query() { take, page }) {
     return this.postServiceV1.getUserPosts(take, page);
-  }
-
-  @Get('/search/:post')
-  searchPosts(@Param('post') post: string, @Query() { take, page }) {
-    return this.postServiceV1.searchPosts(post, take, page);
   }
 
   @Get('/user/bookmarked/posts')
