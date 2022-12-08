@@ -28,6 +28,6 @@ async function bootstrap() {
   );
 
   app.useStaticAssets(join(__dirname, '..', ''));
-  await app.listen(process.env.PORT || 5000, '0,0,0,0');
+  await app.listen(process.env.PORT || 5000, '0.0.0.0');
 }
 bootstrap();
