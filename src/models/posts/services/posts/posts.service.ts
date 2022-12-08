@@ -130,8 +130,6 @@ export class PostsServiceV1 {
       return u?.id?.toString() === user.id.toString();
     });
 
-    console.log(isBookmarked);
-
     if (isBookmarked) {
       const index = post.bookmarkedByUsers.indexOf(isBookmarked);
       if (index > -1) {
@@ -239,6 +237,7 @@ export class PostsServiceV1 {
     const isLiked = post.likes.find((like: any) => like?.user?.id === user?.id);
 
     if (isLiked) {
+      await this.likesRepository.delete({ id: isLiked.id });
       const index = post.likes.indexOf(isLiked);
       if (index > -1) {
         post.likes.splice(index, 1);
