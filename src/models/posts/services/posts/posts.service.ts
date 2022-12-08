@@ -177,8 +177,12 @@ export class PostsServiceV1 {
     });
   }
 
-  deletePost(id: string) {
-    return this.postsRepository.delete({ id });
+  async deletePost(id: string) {
+    const post = await this.postsRepository.findOneBy({ id });
+    if (post.image) {
+      deleteFile('./' + post.image);
+    }
+    return this.postsRepository.remove(post);
   }
 
   async commentPost(postId: string, title: string) {
