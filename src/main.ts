@@ -6,7 +6,7 @@ import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.enableCors();
+  // app.enableCors();
   app.enableVersioning({
     type: VersioningType.URI,
   });
