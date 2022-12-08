@@ -18,6 +18,6 @@ async function bootstrap() {
   );
 
   app.useStaticAssets(join(__dirname, '..', ''));
-  await app.listen(5000);
+  await app.listen(5000, '0,0,0,0');
 }
 bootstrap();
