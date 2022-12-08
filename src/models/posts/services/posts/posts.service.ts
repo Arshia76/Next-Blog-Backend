@@ -60,12 +60,14 @@ export class PostsServiceV1 {
         take,
         skip: (page - 1) * take,
       });
+      console.log(data);
     } else {
       data = await this.postsRepository.findAndCount({
         relations: ['comments.user', 'likes.user'],
         take,
         skip: (page - 1) * take,
       });
+      console.log(data);
     }
     return paginateResponse(data, page, take);
   }
@@ -90,6 +92,8 @@ export class PostsServiceV1 {
       take,
       skip: (page - 1) * take,
     });
+    console.log(data);
+
     return paginateResponse(data, page, take);
   }
 
@@ -110,6 +114,7 @@ export class PostsServiceV1 {
       take,
       skip: (page - 1) * take,
     });
+    console.log(data);
 
     return paginateResponse(data, page, take);
   }
@@ -125,8 +130,6 @@ export class PostsServiceV1 {
     });
 
     const isBookmarked = post.bookmarkedByUsers.find((u) => {
-      console.log(u.id);
-      console.log(user.id);
       return u?.id?.toString() === user.id.toString();
     });
 
@@ -214,7 +217,6 @@ export class PostsServiceV1 {
     user?.comments?.push(comment);
     await this.usersRepository.save(user);
     await this.postsRepository.save(post);
-    console.log(post);
 
     return post;
   }
@@ -231,8 +233,6 @@ export class PostsServiceV1 {
     });
     const plainUser = instanceToPlain(user);
     const plainPost = instanceToPlain(post);
-
-    console.log(post.likes);
 
     const isLiked = post.likes.find((like: any) => like?.user?.id === user?.id);
 
