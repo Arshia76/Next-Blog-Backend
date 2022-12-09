@@ -30,7 +30,12 @@ export class PostsServiceV1 {
   ) {
     let data: [Post[], number];
 
-    if (category && search) {
+    if (
+      category &&
+      typeof category !== 'undefined' &&
+      search &&
+      typeof search !== 'undefined'
+    ) {
       data = await this.postsRepository.findAndCount({
         where: {
           title: Like('%' + search + '%'),
@@ -44,17 +49,24 @@ export class PostsServiceV1 {
         take,
         skip: (page - 1) * take,
       });
-    } else if (category || search) {
+    } else if (category && typeof category !== 'undefined') {
       data = await this.postsRepository.findAndCount({
-        where: [
-          { title: Like('%' + search + '%') },
-
-          {
-            category: {
-              id: category,
-            },
+        where: {
+          category: {
+            id: category,
           },
-        ],
+        },
+
+        relations: ['comments.user', 'likes.user'],
+        take,
+        skip: (page - 1) * take,
+      });
+      console.log(data);
+    } else if (search && typeof search !== 'undefined') {
+      data = await this.postsRepository.findAndCount({
+        where: {
+          title: Like('%' + search + '%'),
+        },
 
         relations: ['comments.user', 'likes.user'],
         take,
