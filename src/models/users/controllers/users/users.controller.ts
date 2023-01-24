@@ -12,7 +12,7 @@ import {
   ParseFilePipe,
   UseGuards,
 } from '@nestjs/common';
-
+import { Express } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';

@@ -21,6 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AccessJwtAuthGuard } from 'src/models/auth/common/guards';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { Express } from 'express';
 
 @Controller({ version: '1', path: 'posts' })
 export class PostsControllerV1 {

@@ -7,6 +7,7 @@ import { instanceToPlain } from 'class-transformer';
 import { REQUEST } from '@nestjs/core';
 import paginateResponse from 'src/utils/paginateResponse';
 import { deleteFile } from 'src/utils/functions';
+import { Express } from 'express';
 
 @Injectable()
 export class PostsServiceV1 {

@@ -13,6 +13,7 @@ import { REQUEST } from '@nestjs/core';
 import { ChangePasswordDto } from '../../common/dto/change-password-dto';
 import * as bcrypt from 'bcrypt';
 import { deleteFile } from 'src/utils/functions';
+import { Express } from 'express';
 
 @Injectable()
 export class UsersServiceV1 {
